@@ -9,7 +9,7 @@ const rule: TSESLint.RuleModule<'incorrectOrder', []> = {
         description: 'Enforce a consistent order of Tailwind CSS class names',
       },
       messages: {
-        incorrectOrder: 'Class names are not ordered correctly.',
+        incorrectOrder: 'Class names are not ordered correctly. Expected: {{expected}}',
       },
       schema: [],
     },
@@ -25,6 +25,7 @@ const rule: TSESLint.RuleModule<'incorrectOrder', []> = {
             context.report({
               node,
               messageId: 'incorrectOrder',
+              data: { expected: sortedClasses },
             });
           }
     };
