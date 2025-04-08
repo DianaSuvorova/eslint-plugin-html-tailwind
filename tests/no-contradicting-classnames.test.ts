@@ -29,10 +29,10 @@ ruleTester.run('no-contradicting-class-names', rule, {
       code: `<div class="w-1 w-2"></div>`,
       errors: [
         {
-          messageId: 'duplicatePrefix',
+          messageId: 'duplicateGroup',
           data: {
-            prefix: 'w',
-            classes: 'w-1, w-2',
+            group: 'w',
+            conflicts: 'w-1, w-2',
           },
         },
       ],
@@ -41,10 +41,10 @@ ruleTester.run('no-contradicting-class-names', rule, {
       code: `<div class="p-4 p-6"></div>`,
       errors: [
         {
-          messageId: 'duplicatePrefix',
+          messageId: 'duplicateGroup',
           data: {
-            prefix: 'p',
-            classes: 'p-4, p-6',
+            group: 'p',
+            conflicts: 'p-4, p-6',
           },
         },
       ],
@@ -53,10 +53,10 @@ ruleTester.run('no-contradicting-class-names', rule, {
       code: `<div :class="{ 'w-1 w-2': true }"></div>`,
       errors: [
         {
-          messageId: 'duplicatePrefix',
+          messageId: 'duplicateGroup',
           data: {
-            prefix: 'w',
-            classes: 'w-1, w-2',
+            group: 'w',
+            conflicts: 'w-1, w-2',
           },
         },
       ],
@@ -65,10 +65,10 @@ ruleTester.run('no-contradicting-class-names', rule, {
       code: `<div :class="{ 'p-4 p-6': condition }"></div>`,
       errors: [
         {
-          messageId: 'duplicatePrefix',
+          messageId: 'duplicateGroup',
           data: {
-            prefix: 'p',
-            classes: 'p-4, p-6',
+            group: 'p',
+            conflicts: 'p-4, p-6',
           },
         },
       ],
