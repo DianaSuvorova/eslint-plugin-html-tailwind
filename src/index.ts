@@ -1,5 +1,5 @@
-import noContradictingClassNames from './src/rules/no-contradicting-classnames';
-import classnameOrder from './src/rules/classname-order';
+import noContradictingClassNames from './rules/no-contradicting-classnames';
+import classnameOrder from './rules/classname-order';
 
 export const rules = {
   'no-contradicting-class-names': noContradictingClassNames,
