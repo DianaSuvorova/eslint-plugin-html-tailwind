@@ -15,8 +15,6 @@ const ruleTester = new RuleTester({
   },
 });
 
-const errors = [{ messageId: 'incorrectOrder' }];
-
 ruleTester.run('classname-order', classnameOrderRule, {
   valid: [
     `<div class="container mx-auto px-6">"container is a component so it comes first"</div>`,
