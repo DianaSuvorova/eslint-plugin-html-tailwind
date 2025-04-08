@@ -7,6 +7,7 @@ export default defineConfig([
       outDir: 'dist',
       dts: false,
       clean: false,
+      shims: true,
       outExtension: () => ({ js: '.js' }),
     },
     {
@@ -15,6 +16,7 @@ export default defineConfig([
       outDir: 'dist',
       dts: true,
       clean: false,
+      shims: true,
       outExtension: () => ({ js: '.cjs' }),
     },
   ]);
