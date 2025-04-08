@@ -8,7 +8,6 @@ export default defineConfig([
       dts: false,
       clean: false,
       shims: true,
-      external: ['tailwindcss'],
       outExtension: () => ({ js: '.js' }),
     },
     {
@@ -18,7 +17,6 @@ export default defineConfig([
       dts: true,
       clean: false,
       shims: true,
-      external: ['tailwindcss'],
       outExtension: () => ({ js: '.cjs' }),
     },
   ]);
