@@ -15,6 +15,7 @@ const ruleTester = new RuleTester({
   },
 });
 
+
 ruleTester.run('no-contradicting-class-names', rule, {
   valid: [
     { code: `<div class="w-1 min-w-full"></div>` },
@@ -22,6 +23,8 @@ ruleTester.run('no-contradicting-class-names', rule, {
     { code: `<div class="block w-full" x-cloak></div>` },
     { code: `<div class="hidden" x-transition></div>` },
     { code: `<div :class="{ 'w-1': isSmall, 'min-w-full': isLarge }"></div>` },
+    { code: `<div class="w-full, md:w-full"></div>` },
+
   ],
 
   invalid: [

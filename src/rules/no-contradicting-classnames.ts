@@ -1,10 +1,5 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { Attribute } from '@html-eslint/types';
-import { sortClasses, extractClassCandidates } from '@shufo/tailwindcss-class-sorter';
-import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindDefault from 'tailwindcss/defaultConfig'; 
-import path from 'path';
-import fs from 'fs';
 
 // Utility: Extract the core utility from a Tailwind class (e.g. "border" from "border", "border-neutral-200")
 function getUtilityGroup(className: string): string {
@@ -23,7 +18,6 @@ const rule: TSESLint.RuleModule<'incorrectOrder' | 'duplicateGroup', Options> = 
       description: 'Enforce a consistent order of Tailwind CSS class names and disallow contradicting utility groups',
     },
     messages: {
-      incorrectOrder: 'Class names are not ordered correctly. Expected: {{expected}}',
       duplicateGroup: 'Multiple classes use the same utility group "{{group}}": {{conflicts}}',
     },
     schema: [
@@ -40,55 +34,26 @@ const rule: TSESLint.RuleModule<'incorrectOrder' | 'duplicateGroup', Options> = 
   defaultOptions: [{}],
 
   create(context) {
-    const options = context.options[0] ?? {};
-    const tailwindConfigPath = options.tailwindConfigPath;
-
-    let resolvedConfig = resolveConfig(tailwindDefault);
-
-    if (tailwindConfigPath) {
-      const resolvedPath = path.resolve(process.cwd(), tailwindConfigPath);
-      if (fs.existsSync(resolvedPath)) {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          const loadedConfig = require(resolvedPath);
-          resolvedConfig = resolveConfig(loadedConfig);
-        } catch (err) {
-          context.report({
-            loc: { line: 1, column: 0 },
-            message: `Failed to load Tailwind config at "${tailwindConfigPath}": ${err.message}`,
-          });
-        }
-      } else {
-        context.report({
-          loc: { line: 1, column: 0 },
-          message: `Tailwind config file "${tailwindConfigPath}" does not exist.`,
-        });
-      }
-    }
-
     const checkClassNames = (classNames: string[], node: Attribute) => {
-      const classNamesString = classNames.join(' ');
-      const sorted = sortClasses(classNamesString, { tailwindConfig: resolvedConfig });
-
-      if (classNamesString !== sorted) {
-        context.report({
-          node,
-          messageId: 'incorrectOrder',
-          data: { expected: sorted },
-        });
-      }
-
-      // Detect duplicate utility groups (e.g., w-1 w-2)
+      // Only check for utility group collisions (ignore sorting)
       const seenGroups = new Map<string, string[]>();
+    
       for (const cls of classNames) {
-        const group = getUtilityGroup(cls);
+        const [variant, baseClass] = cls.includes(':')
+          ? cls.split(/:(.+)/) // split at first colon to handle things like `md:w-1`
+          : [null, cls];
+    
+        // Skip variant-prefixed classes
+        if (variant) continue;
+    
+        const group = getUtilityGroup(baseClass);
         if (!seenGroups.has(group)) {
           seenGroups.set(group, [cls]);
         } else {
           seenGroups.get(group)?.push(cls);
         }
       }
-
+    
       for (const [group, names] of seenGroups) {
         if (names.length > 1) {
           context.report({
@@ -101,7 +66,7 @@ const rule: TSESLint.RuleModule<'incorrectOrder' | 'duplicateGroup', Options> = 
           });
         }
       }
-    };
+    };    
 
     return {
       Attribute(node: Attribute) {
