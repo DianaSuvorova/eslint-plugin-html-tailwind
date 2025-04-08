@@ -1,7 +1,6 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { Attribute } from '@html-eslint/types';
-import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindDefault from 'tailwindcss/defaultConfig'; 
+
 import path from 'path';
 import fs from 'fs';
 
@@ -38,32 +37,6 @@ const rule: TSESLint.RuleModule<'incorrectOrder' | 'duplicateGroup', Options> = 
   defaultOptions: [{}],
 
   create(context) {
-    const options = context.options[0] ?? {};
-    const tailwindConfigPath = options.tailwindConfigPath;
-
-    let resolvedConfig = resolveConfig(tailwindDefault);
-
-    if (tailwindConfigPath) {
-      const resolvedPath = path.resolve(process.cwd(), tailwindConfigPath);
-      if (fs.existsSync(resolvedPath)) {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          const loadedConfig = require(resolvedPath);
-          resolvedConfig = resolveConfig(loadedConfig);
-        } catch (err) {
-          context.report({
-            loc: { line: 1, column: 0 },
-            message: `Failed to load Tailwind config at "${tailwindConfigPath}": ${err.message}`,
-          });
-        }
-      } else {
-        context.report({
-          loc: { line: 1, column: 0 },
-          message: `Tailwind config file "${tailwindConfigPath}" does not exist.`,
-        });
-      }
-    }
-
     const checkClassNames = (classNames: string[], node: Attribute) => {
       // Only check for utility group collisions (ignore sorting)
       const seenGroups = new Map<string, string[]>();
