@@ -15,8 +15,6 @@ const ruleTester = new RuleTester({
   },
 });
 
-const errors = [{ messageId: 'incorrectOrder' }];
-
 ruleTester.run('classname-order', classnameOrderRule, {
   valid: [
     `<div class="container mx-auto px-6">"container is a component so it comes first"</div>`,
@@ -31,35 +29,35 @@ ruleTester.run('classname-order', classnameOrderRule, {
   invalid: [
     {
       code: `<div class="text-white px-4 sm:px-8 py-2 sm:py-3 bg-sky-700 hover:bg-sky-800"></div>`,
-      errors
+      errors: [{ messageId: 'incorrectOrder', data: { expected: 'bg-sky-700 px-4 py-2 text-white hover:bg-sky-800 sm:px-8 sm:py-3' } }],
     },
     {
       code: `<div class="pt-2 p-4">"SHould be p-4 pt-2"</div>`,
-      errors
+      errors: [{ messageId: 'incorrectOrder', data: { expected: 'p-4 pt-2' } }],
     },
     {
-      code: `<div class="text-gray-700 shadow-md p-3 border-gray-300 ml-4 h-24 flex border-2"><h1>Something nested</h1></div>`,
-      errors
+      code: `<div class="text-gray-700 shadow-md p-3 border-gray-300 ml-4 h-24 flex border-2"></div>`,
+      errors: [{ messageId: 'incorrectOrder', data: { expected: 'ml-4 flex h-24 border-2 border-gray-300 p-3 text-gray-700 shadow-md' } }],
     },
     {
-      code: `<div class="hover:opacity-75 opacity-50 hover:scale-150 scale-125"> Modifiers like hover: and focus: are grouped together and sorted after any plain utilities:</div>`,
-      errors
+      code: `<div class="hover:opacity-75 opacity-50 hover:scale-150 scale-125"></div>`,
+      errors: [{ messageId: 'incorrectOrder', data: { expected: 'scale-125 opacity-50 hover:scale-150 hover:opacity-75' } }],
     },
     {
-      code: `<div class="lg:grid-cols-4 grid sm:grid-cols-3 grid-cols-2">"Responsive modifiers like md: and lg: are grouped together at the end"</div>`,
-      errors
+      code: `<div class="lg:grid-cols-4 grid sm:grid-cols-3 grid-cols-2"></div>`,
+      errors: [{ messageId: 'incorrectOrder', data: { expected: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' } }],
     },
     {
-      code: `<div class="p-3 shadow-xl select2-dropdown">Custom classes at the front</div>`,
-      errors
+      code: `<div class="p-3 shadow-xl select2-dropdown"></div>`,
+      errors: [{ messageId: 'incorrectOrder', data: { expected: 'select2-dropdown p-3 shadow-xl' } }],
     },
     {
-      code: `<div class="w-full block" x-cloak="">Wrong order with Alpine x-cloak</div>`,
-      errors
+      code: `<div class="w-full block" x-cloak></div>`,
+      errors: [{ messageId: 'incorrectOrder', data: { expected: 'block w-full' } }],
     },
     {
-      code: `<div class="w-full block" x-transition="fade">Wrong order with Alpine x-transition</div>`,
-      errors
+      code: `<div class="w-full block" x-transition="fade"></div>`,
+      errors: [{ messageId: 'incorrectOrder', data: { expected: 'block w-full' } }],
     },
   ],
 });
