@@ -1,44 +1,102 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { Attribute } from '@html-eslint/types';
+import { sortClasses, extractClassCandidates } from '@shufo/tailwindcss-class-sorter';
+import resolveConfig from 'tailwindcss/resolveConfig';
+import tailwindDefault from 'tailwindcss/defaultConfig'; 
+import path from 'path';
+import fs from 'fs';
 
-const rule: TSESLint.RuleModule<'duplicatePrefix', []> = {
+// Utility: Extract the core utility from a Tailwind class (e.g. "border" from "border", "border-neutral-200")
+function getUtilityGroup(className: string): string {
+  const [base] = className.split(':').pop()?.split('-') ?? [];
+  return base || className;
+}
+
+type Options = [{
+  tailwindConfigPath?: string;
+}];
+
+const rule: TSESLint.RuleModule<'incorrectOrder' | 'duplicateGroup', Options> = {
   meta: {
-    type: 'problem',
+    type: 'suggestion',
     docs: {
-      description: 'Disallow Tailwind classes that repeat the same property (e.g., w-1 w-2)',
+      description: 'Enforce a consistent order of Tailwind CSS class names and disallow contradicting utility groups',
     },
     messages: {
-      duplicatePrefix: 'Multiple classes use the same property prefix "{{prefix}}": {{classes}}',
+      incorrectOrder: 'Class names are not ordered correctly. Expected: {{expected}}',
+      duplicateGroup: 'Multiple classes use the same utility group "{{group}}": {{conflicts}}',
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          tailwindConfigPath: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
+    ],
   },
 
-  defaultOptions: [],
+  defaultOptions: [{}],
 
   create(context) {
-    const ALPINE_MARKERS = new Set(['x-transition', 'x-cloak']);
+    const options = context.options[0] ?? {};
+    const tailwindConfigPath = options.tailwindConfigPath;
 
-    const checkDuplicatePrefixes = (classNames: string[], node: Attribute) => {
-      const byPrefix: Record<string, string[]> = {};
+    let resolvedConfig = resolveConfig(tailwindDefault);
 
-      for (const className of classNames) {
-        const prefix = className.includes('-') ? className.split('-')[0] : className;
-
-        if (!byPrefix[prefix]) {
-          byPrefix[prefix] = [];
+    if (tailwindConfigPath) {
+      const resolvedPath = path.resolve(process.cwd(), tailwindConfigPath);
+      if (fs.existsSync(resolvedPath)) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const loadedConfig = require(resolvedPath);
+          resolvedConfig = resolveConfig(loadedConfig);
+        } catch (err) {
+          context.report({
+            loc: { line: 1, column: 0 },
+            message: `Failed to load Tailwind config at "${tailwindConfigPath}": ${err.message}`,
+          });
         }
+      } else {
+        context.report({
+          loc: { line: 1, column: 0 },
+          message: `Tailwind config file "${tailwindConfigPath}" does not exist.`,
+        });
+      }
+    }
 
-        byPrefix[prefix].push(className);
+    const checkClassNames = (classNames: string[], node: Attribute) => {
+      const classNamesString = classNames.join(' ');
+      const sorted = sortClasses(classNamesString, { tailwindConfig: resolvedConfig });
+
+      if (classNamesString !== sorted) {
+        context.report({
+          node,
+          messageId: 'incorrectOrder',
+          data: { expected: sorted },
+        });
       }
 
-      for (const [prefix, group] of Object.entries(byPrefix)) {
-        if (group.length > 1) {
+      // Detect duplicate utility groups (e.g., w-1 w-2)
+      const seenGroups = new Map<string, string[]>();
+      for (const cls of classNames) {
+        const group = getUtilityGroup(cls);
+        if (!seenGroups.has(group)) {
+          seenGroups.set(group, [cls]);
+        } else {
+          seenGroups.get(group)?.push(cls);
+        }
+      }
+
+      for (const [group, names] of seenGroups) {
+        if (names.length > 1) {
           context.report({
             node,
-            messageId: 'duplicatePrefix',
+            messageId: 'duplicateGroup',
             data: {
-              prefix,
-              classes: group.join(', '),
+              group,
+              conflicts: names.join(', '),
             },
           });
         }
@@ -50,13 +108,16 @@ const rule: TSESLint.RuleModule<'duplicatePrefix', []> = {
         const attrName = node.key?.value;
         const rawValue = node.value?.value;
 
-        if (!attrName || attrName.startsWith('x-') || typeof rawValue !== 'string') return;
+        const ALPINE_MARKERS = new Set(['x-transition', 'x-cloak']);
+
+        if (!attrName || attrName.startsWith('x-')) return;
+        if (typeof rawValue !== 'string') return;
 
         if (attrName === 'class') {
           const classNames = rawValue
             .split(/\s+/)
             .filter((name) => name && !ALPINE_MARKERS.has(name));
-          checkDuplicatePrefixes(classNames, node);
+          checkClassNames(classNames, node);
         }
 
         if (attrName === ':class') {
@@ -72,7 +133,7 @@ const rule: TSESLint.RuleModule<'duplicatePrefix', []> = {
             });
           }
 
-          checkDuplicatePrefixes(classNames, node);
+          checkClassNames(classNames, node);
         }
       },
     };
