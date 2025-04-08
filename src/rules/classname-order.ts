@@ -42,6 +42,7 @@ const rule: TSESLint.RuleModule<'incorrectOrder', Options> = {
       const resolvedPath = path.resolve(process.cwd(), tailwindConfigPath);
       if (fs.existsSync(resolvedPath)) {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
           const loadedConfig = require(resolvedPath);
           resolvedConfig = resolveConfig(loadedConfig);
         } catch (err) {
