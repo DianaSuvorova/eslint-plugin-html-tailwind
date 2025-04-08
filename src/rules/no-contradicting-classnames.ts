@@ -1,9 +1,6 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { Attribute } from '@html-eslint/types';
 
-import path from 'path';
-import fs from 'fs';
-
 // Utility: Extract the core utility from a Tailwind class (e.g. "border" from "border", "border-neutral-200")
 function getUtilityGroup(className: string): string {
   const [base] = className.split(':').pop()?.split('-') ?? [];
