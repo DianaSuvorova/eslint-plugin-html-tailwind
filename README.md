@@ -36,16 +36,9 @@ export default [
 
 ```
 
-## 🧬 Alpine.js Compatibility
+##  Alpine.js Compatibility
 
-This plugin safely ignores Alpine.js directives like:
-
-```html
-<div x-cloak class="block w-full"></div>
-<div x-transition="fade" class="hidden"></div>
-<div :class="{'p-4 pt-2': condition}"></div>
-```
-
+This plugin safely integrtes with Alpine.js directives and code.
 Your Alpine attributes remain untouched while Tailwind classes are checked.
 
 
