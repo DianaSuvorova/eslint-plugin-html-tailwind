@@ -1,6 +1,6 @@
 # eslint-plugin-html-tailwind
 
-An ESLint plugin for tailwind in HTML.
+An ESLint plugin for [tailwindcss](https://tailwindcss.com/) in HTML.
 
 
 ## 🚀 Installation
