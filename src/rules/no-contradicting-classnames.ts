@@ -8,7 +8,7 @@ const SIMPLE_NUMERIC_PREFIXES = new Set([
   'p', 'px', 'py', 'pt', 'pr', 'pb', 'pl',
   'm', 'mx', 'my', 'mt', 'mr', 'mb', 'ml',
   // borders
-  'rounded', 'border-t', 'border-r', 'border-b', 'border-l',
+  'border-t', 'border-r', 'border-b', 'border-l',
   // Layout
   'z', 'order', 'columns', 'grid-cols', 'gap', 'gap-x', 'gap-y',
   // Effects
