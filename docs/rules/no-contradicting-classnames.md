@@ -4,27 +4,40 @@ Disallow multiple Tailwind CSS class names that modify the same exact property (
 
 ## Rule Details
 
-This rule flags cases where two or more Tailwind classes targeting the **same property** (determined by prefix) are used together, which often results in the later class overriding the previous one.
+This rule flags a limited set of Tailwind utility classes when multiple numeric variations of the same property (based on known prefixes) are used together, which often results in one class overriding the other.
 
-✅ **Good:**
+It does not attempt to detect all overlapping or conflicting classes—only obvious cases like:
+
+* w-1 w-2 (duplicate widths)
+* p-4 p-6 (duplicate padding)
+* border-2 border-4 (duplicate border width)
+
+## ✅ Good (allowed):
+
 ```html
+
 <div class="w-1 min-w-full"></div>
 <div class="p-4 py-2"></div>
 <div class="block w-full" x-cloak></div>
+<div class="border border-gray-200"></div>
 ```
+## 🚫 Bad (flagged):
 
-🚫 **Bad:**
 ```html
 <div class="w-1 w-2"></div>
 <div class="p-4 p-6"></div>
+<div class="border-2 border-4"></div>
 <div :class="{ 'w-1 w-2': true }"></div>
 <div :class="{ 'p-4 p-6': condition }"></div>
 ```
+In each invalid example above, two classes share the same utility group and both use numeric modifiers, which suggests an unintentional override.
 
-In each of the invalid examples above, two classes share the same **base prefix** (like `w-` or `p-`), which means they are likely meant to modify the same CSS property (e.g., `width` or `padding`). This rule helps catch accidental overlap and encourages a single clear declaration.
+## What It Doesn’t Flag
+This rule intentionally ignores:
 
-## When Not To Use It
-You can disable this rule if you intentionally layer multiple classes that override one another based on conditionals or variants.
+Valid combinations like `border` `border-gray-200`
+Classes with different variants (e.g., `w-1` `md:w-2`)
+More complex semantic utilities like `text-sm` `text-gray-600`
 
 ## Compatibility
 ✅ Supports plain HTML, AlpineJS `:class` bindings in object style.
