@@ -62,6 +62,8 @@ This plugin is an attempt to help fill that gap.
 
 It aims to bring some useful static checks — like catching obvious class conflicts or enforcing consistent class order — to HTML and Alpine.js projects using Tailwind. It’s not trying to cover everything, just to be a helpful tool for folks who prefer writing components this way.
 
+## Static Analysis for Tailwind + Alpine.js
+
 There is a separate project, eslint-plugin-alpinejs(https://www.npmjs.com/package/eslint-plugin-alpinejs), that aims to provide linting rules specifically for Alpine.js. It’s still in the very early stages, and currently under active development — but if you’re using Alpine, we’d love for you to try it out and share feedback as an early adopter.
 
 With that the recommended setup for static check  for `Tailwind+Alpinejs` web looks like below:
