@@ -1,72 +1,96 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { Attribute } from '@html-eslint/types';
 
-// Utility: Extract the core utility from a Tailwind class (e.g. "border" from "border", "border-neutral-200")
-function getUtilityGroup(className: string): string {
-  const [base] = className.split(':').pop()?.split('-') ?? [];
-  return base || className;
+const SIMPLE_NUMERIC_PREFIXES = new Set([
+  // Sizing
+  'w', 'h', 'min-w', 'max-w', 'min-h', 'max-h',
+  // Spacing
+  'p', 'px', 'py', 'pt', 'pr', 'pb', 'pl',
+  'm', 'mx', 'my', 'mt', 'mr', 'mb', 'ml',
+  // Borders
+  'border', 'rounded', 'border-t', 'border-r', 'border-b', 'border-l',
+  // Layout
+  'z', 'order', 'columns', 'grid-cols', 'gap', 'gap-x', 'gap-y',
+  // Effects
+  'blur', 'brightness', 'contrast', 'opacity', 'saturate', 'sepia',
+  // Other
+  'scale', 'indent', 'aspect',
+]);
+
+function getUtilityGroupParts(className: string): { group: string | null; hasNumericModifier: boolean } {
+  const base = className.replace(/^.*:/, '').trim();
+  const parts = base.split('-');
+
+  let group = parts[0];
+  if (parts.length > 2 && SIMPLE_NUMERIC_PREFIXES.has(`${parts[0]}-${parts[1]}`)) {
+    group = `${parts[0]}-${parts[1]}`;
+  }
+
+  const finalGroup = SIMPLE_NUMERIC_PREFIXES.has(group) ? group : null;
+
+  const lastPart = parts[parts.length - 1];
+  const hasNumericModifier = /^\d+$/.test(lastPart); // only true if last part is a number
+
+  return {
+    group: finalGroup,
+    hasNumericModifier,
+  };
 }
 
-type Options = [{
-  tailwindConfigPath?: string;
-}];
-
-const rule: TSESLint.RuleModule<'incorrectOrder' | 'duplicateGroup', Options> = {
+const rule: TSESLint.RuleModule<'duplicateGroup'> = {
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Enforce a consistent order of Tailwind CSS class names and disallow contradicting utility groups',
+      description: 'Disallow contradicting Tailwind utility classes with the same numeric group prefix',
     },
     messages: {
       duplicateGroup: 'Multiple classes use the same utility group "{{group}}": {{conflicts}}',
     },
-    schema: [
-      {
-        type: 'object',
-        properties: {
-          tailwindConfigPath: { type: 'string' },
-        },
-        additionalProperties: false,
-      },
-    ],
+    schema: [],
   },
-
-  defaultOptions: [{}],
 
   create(context) {
     const checkClassNames = (classNames: string[], node: Attribute) => {
-      // Only check for utility group collisions (ignore sorting)
-      const seenGroups = new Map<string, string[]>();
-    
-      for (const cls of classNames) {
+      const seenGroups = new Map<string, Set<{ cls: string; hasNumericModifier: boolean }>>();
+
+      for (const raw of classNames) {
+        const cls = raw.trim().replace(/^,+|,+$/g, '');
         const [variant, baseClass] = cls.includes(':')
-          ? cls.split(/:(.+)/) // split at first colon to handle things like `md:w-1`
+          ? cls.split(/:(.+)/)
           : [null, cls];
-    
-        // Skip variant-prefixed classes
+
         if (variant) continue;
-    
-        const group = getUtilityGroup(baseClass);
-        if (!seenGroups.has(group)) {
-          seenGroups.set(group, [cls]);
-        } else {
-          seenGroups.get(group)?.push(cls);
-        }
+
+        const { group, hasNumericModifier } = getUtilityGroupParts(baseClass);
+        if (!group) continue;
+
+        const entries = seenGroups.get(group) || new Set();
+        entries.add({ cls, hasNumericModifier });
+        seenGroups.set(group, entries);
       }
-    
-      for (const [group, names] of seenGroups) {
-        if (names.length > 1) {
-          context.report({
-            node,
-            messageId: 'duplicateGroup',
-            data: {
-              group,
-              conflicts: names.join(', '),
-            },
-          });
+
+      for (const [group, entries] of seenGroups.entries()) {
+        const entriesArr = Array.from(entries);
+        if (entriesArr.length <= 1) continue;
+
+        const hasBare = entriesArr.some((e) => !e.hasNumericModifier);
+        const hasWithModifier = entriesArr.some((e) => e.hasNumericModifier);
+
+        if (hasBare && hasWithModifier && entriesArr.length === 2) {
+          // e.g., border + border-gray-200 → ignore
+          continue;
         }
+
+        context.report({
+          node,
+          messageId: 'duplicateGroup',
+          data: {
+            group,
+            conflicts: entriesArr.map((e) => e.cls).join(', '),
+          },
+        });
       }
-    };    
+    };
 
     return {
       Attribute(node: Attribute) {
@@ -74,13 +98,13 @@ const rule: TSESLint.RuleModule<'incorrectOrder' | 'duplicateGroup', Options> = 
         const rawValue = node.value?.value;
 
         const ALPINE_MARKERS = new Set(['x-transition', 'x-cloak']);
-
         if (!attrName || attrName.startsWith('x-')) return;
         if (typeof rawValue !== 'string') return;
 
         if (attrName === 'class') {
           const classNames = rawValue
             .split(/\s+/)
+            .map((name) => name.trim())
             .filter((name) => name && !ALPINE_MARKERS.has(name));
           checkClassNames(classNames, node);
         }
@@ -92,8 +116,9 @@ const rule: TSESLint.RuleModule<'incorrectOrder' | 'duplicateGroup', Options> = 
           for (const match of matches) {
             const rawKey = match.replace(/['":]/g, '').trim();
             rawKey.split(/\s+/).forEach((name) => {
-              if (name && !ALPINE_MARKERS.has(name)) {
-                classNames.push(name);
+              const clean = name.trim();
+              if (clean && !ALPINE_MARKERS.has(clean)) {
+                classNames.push(clean);
               }
             });
           }

@@ -18,13 +18,17 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('no-contradicting-class-names', rule, {
   valid: [
-    { code: `<div class="w-1 min-w-full"></div>` },
-    { code: `<div class="px-4 py-2"></div>` },
-    { code: `<div class="block w-full" x-cloak></div>` },
-    { code: `<div class="hidden" x-transition></div>` },
-    { code: `<div :class="{ 'w-1': isSmall, 'min-w-full': isLarge }"></div>` },
-    { code: `<div class="w-full, md:w-full"></div>` },
-
+    `<div class="w-1 min-w-full"></div>`,
+    `<div class="px-4 py-2"></div>`,
+    `<div class="block w-full" x-cloak></div>`,
+    `<div class="hidden" x-transition></div>`,
+    `<div :class="{ 'w-1': isSmall, 'min-w-full': isLarge}"></div>`,
+    `<div class="w-full, md:w-full"></div>`,
+    `<div class="border, border-gray-200"></div>`,
+    `<div class="border, border-2"></div>`,
+    `<div class="text-xs, text-neutral-500"></div>`,
+    `<div class="flex, flex-col"></div>`,
+    `<div class=" object-contain, object-center"></div>`,
   ],
 
   invalid: [
