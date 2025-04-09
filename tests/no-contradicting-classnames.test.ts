@@ -28,7 +28,10 @@ ruleTester.run('no-contradicting-class-names', rule, {
     `<div class="border, border-2"></div>`,
     `<div class="text-xs, text-neutral-500"></div>`,
     `<div class="flex, flex-col"></div>`,
-    `<div class=" object-contain, object-center"></div>`,
+    `<div class="object-contain, object-center"></div>`,
+    `<div class="border, border-neutral-200/70 border-transparent"></div>`,
+    `<div class ="border-[2px], border-white"></div>`,
+    `<div :class="{ 'opacity-0 z-10' : preview, 'z-30': !preview }"></div>`
   ],
 
   invalid: [

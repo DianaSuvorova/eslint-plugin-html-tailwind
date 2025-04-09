@@ -7,8 +7,8 @@ const SIMPLE_NUMERIC_PREFIXES = new Set([
   // Spacing
   'p', 'px', 'py', 'pt', 'pr', 'pb', 'pl',
   'm', 'mx', 'my', 'mt', 'mr', 'mb', 'ml',
-  // Borders
-  'border', 'rounded', 'border-t', 'border-r', 'border-b', 'border-l',
+  // borders
+  'rounded', 'border-t', 'border-r', 'border-b', 'border-l',
   // Layout
   'z', 'order', 'columns', 'grid-cols', 'gap', 'gap-x', 'gap-y',
   // Effects
@@ -110,20 +110,22 @@ const rule: TSESLint.RuleModule<'duplicateGroup'> = {
         }
 
         if (attrName === ':class') {
+          // Match all string keys in object syntax like: { 'foo bar': condition }
           const matches = rawValue.match(/'([^']+?)'\s*:/g) || [];
-          const classNames: string[] = [];
-
+        
           for (const match of matches) {
             const rawKey = match.replace(/['":]/g, '').trim();
+            const classNames: string[] = [];
+        
             rawKey.split(/\s+/).forEach((name) => {
               const clean = name.trim();
               if (clean && !ALPINE_MARKERS.has(clean)) {
                 classNames.push(clean);
               }
             });
+        
+            checkClassNames(classNames, node);
           }
-
-          checkClassNames(classNames, node);
         }
       },
     };
