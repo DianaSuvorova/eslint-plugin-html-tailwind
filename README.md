@@ -73,7 +73,7 @@ With that the recommended setup for static check  for `Tailwind+Alpinejs` web lo
 const htmlPlugin = require("@html-eslint/eslint-plugin");
 const eslintHTMLParser =require( "@html-eslint/parser");
 const tailwind = require("eslint-plugin-html-tailwind");
-const alpinje = require("eslint-plugin-alpinejs");
+const alpinejs = require("eslint-plugin-alpinejs");
 
 module.exports = [
 {
@@ -83,7 +83,8 @@ module.exports = [
     },
     "plugins": {
       "@html-eslint": htmlPlugin,
-      "html-tailwind": tailwind
+      "html-tailwind": tailwind,
+      "alpinejs": alpinejs,
     },
     "rules": {
       ...htmlPlugin.configs.recommended.rules,
