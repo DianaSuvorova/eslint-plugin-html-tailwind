@@ -1,8 +1,8 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import type { Attribute } from '@html-eslint/types';
 import { sortClasses } from '@shufo/tailwindcss-class-sorter';
-import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindDefault from 'tailwindcss/defaultConfig'; 
+import resolveConfig from 'tailwindcss/resolveConfig.js';
+import tailwindDefault from 'tailwindcss/defaultConfig.js'; 
 import path from 'path';
 import fs from 'fs';
 

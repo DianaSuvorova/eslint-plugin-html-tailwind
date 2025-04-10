@@ -26,7 +26,7 @@ export default [
       parser: htmlParser,
     },
     plugins: {
-      tailwind,
+      'html-tailwind': tailwind,
     },
     rules: {
       'html-tailwind/no-contradicting-classnames': 'error',
